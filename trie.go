@@ -3,6 +3,10 @@ package main
 import (
    "fmt"
    "unicode/utf8"
+   "unicode"
+   "os"
+   "bufio"
+   "io"
 )
 
 type Text []byte
@@ -78,28 +82,67 @@ func (node *Node) match(words []string,cursor int) int {
 
 func TexttoWord(text Text) []string {
     var output []string
-    output = make([]string, len(text)/3)
+	tmp := make([]Text, len(text))
+    output = make([]string, 0)
+	start :=0
     cursor := 0
+	currentWord := 0
+	inAlphanumeric := true
     i := 0
     for cursor < len(text) {
       p, size := utf8.DecodeRune(text[cursor:])
-      output[i] = string(p)
-      i++
-      cursor += size
+	  if size <= 2 && (unicode.IsLetter(p) || unicode.IsNumber(p)) {
+	  		if !inAlphanumeric {
+				start = cursor
+				inAlphanumeric = true
+			}
+	  }else{
+	  		if inAlphanumeric {
+				inAlphanumeric = false
+				if cursor != 0 {
+					tmp[currentWord] = text[start:cursor]
+					currentWord++
+				}
+			}
+			tmp[currentWord] = text[cursor : cursor+size]
+			currentWord++
+	 }
+       cursor += size
     }
+	for r, _ := range tmp {
+	    output = append(output,string(r))
+		i++
+	}
     return output
 }
 
 func init() {
    fmt.Printf("init\n")
-   //root := Node{Child : make(map[string]*Node)}
 }
 
 func main() {
-   words := []string{"中国","美国","德国","法国","意大利"}
+   //words := []string{"中国","美国","德国","A股H","意大利"}
+   words := make([]string, 0)
+   file, err := os.Open("main2012.dic")
+   if err !=nil {
+      fmt.Println("error")
+	  return
+   }
+   defer file.Close()
+   br := bufio.NewReader(file)
+ 
+   for {
+     line, _, err := br.ReadLine()
+	 if err == io.EOF {
+	    break
+	 }
+	 words = append(words,string(line))
+   }
+   
    root := CreateTrie(words)
-   //fmt.Printf("%v\n",root)
-   flag := root.match(TexttoWord([]byte("中国人")),0)
+   fmt.Println("dictionary is ok")
+   
+   flag := root.match(TexttoWord([]byte("中国")),0)
    if flag==0{
       fmt.Printf("total match\n")
    } else if flag==2{
