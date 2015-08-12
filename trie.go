@@ -3,7 +3,7 @@ package main
 import (
    "fmt"
    "unicode/utf8"
-   "unicode"
+   //"unicode"
    "os"
    "bufio"
    "io"
@@ -80,19 +80,19 @@ func (node *Node) match(words []string,cursor int) int {
 }
 
 
-func TexttoWord(text Text) []string {
+/*func TexttoWord(text Text) []string {
     var output []string
-	tmp := make([]Text, len(text))
+    tmp := make([]Text, len(text))
     output = make([]string, 0)
-	start :=0
+    start :=0
     cursor := 0
-	currentWord := 0
-	inAlphanumeric := true
+    currentWord := 0
+    inAlphanumeric := true
     i := 0
     for cursor < len(text) {
       p, size := utf8.DecodeRune(text[cursor:])
 	  if size <= 2 && (unicode.IsLetter(p) || unicode.IsNumber(p)) {
-	  		if !inAlphanumeric {
+ 		if !inAlphanumeric {
 				start = cursor
 				inAlphanumeric = true
 			}
@@ -114,7 +114,27 @@ func TexttoWord(text Text) []string {
 		i++
 	}
     return output
+}*/
+
+
+func TexttoWord(text Text) []string {
+    var output []string
+    output = make([]string, 0)
+    cursor := 0
+    i := 0
+    for cursor < len(text) {
+      p, size := utf8.DecodeRune(text[cursor:])
+      //fmt.Printf("%c,%v\n",p,size)
+      output =append(output, string(p))
+      i++
+      cursor += size
+    }
+    return output
 }
+
+
+
+
 
 func init() {
    fmt.Printf("init\n")
@@ -142,7 +162,7 @@ func main() {
    root := CreateTrie(words)
    fmt.Println("dictionary is ok")
    
-   flag := root.match(TexttoWord([]byte("中国")),0)
+   flag := root.match(TexttoWord([]byte("2B")),0)
    if flag==0{
       fmt.Printf("total match\n")
    } else if flag==2{
