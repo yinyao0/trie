@@ -3,13 +3,19 @@ package main
 import (
    "fmt"
    "unicode/utf8"
-   //"unicode"
+    "log"
    "os"
    "bufio"
    "io"
+    "time"
 )
 
 type Text []byte
+const (
+    TOTAL_MATCH   = 0
+    PREFIX_MATCH  = 1
+    NOT_MATCH     = 2
+)
 
 
 type Node struct {
@@ -59,62 +65,26 @@ func lookup(word string,node *Node) *Node{
 
 func (node *Node) match(words []string,cursor int) int {
     if words == nil{
-	   return 2
+	   return NOT_MATCH
 	}
 	
 	w, ok := node.Child[words[cursor]]
 	if ok {
 	   if cursor == len(words)-1 {
 	      if w.Isword == true {
-		      return 0
+		      return TOTAL_MATCH
 		  }
 		  if w.size>0{
-		      return 1
+		      return PREFIX_MATCH
 		  }
 	   } else {
 	      cursor++
 	      return w.match(words,cursor)
 	   }
 	}
-	return 2
+	return NOT_MATCH
 }
 
-
-/*func TexttoWord(text Text) []string {
-    var output []string
-    tmp := make([]Text, len(text))
-    output = make([]string, 0)
-    start :=0
-    cursor := 0
-    currentWord := 0
-    inAlphanumeric := true
-    i := 0
-    for cursor < len(text) {
-      p, size := utf8.DecodeRune(text[cursor:])
-	  if size <= 2 && (unicode.IsLetter(p) || unicode.IsNumber(p)) {
- 		if !inAlphanumeric {
-				start = cursor
-				inAlphanumeric = true
-			}
-	  }else{
-	  		if inAlphanumeric {
-				inAlphanumeric = false
-				if cursor != 0 {
-					tmp[currentWord] = text[start:cursor]
-					currentWord++
-				}
-			}
-			tmp[currentWord] = text[cursor : cursor+size]
-			currentWord++
-	 }
-       cursor += size
-    }
-	for r, _ := range tmp {
-	    output = append(output,string(r))
-		i++
-	}
-    return output
-}*/
 
 
 func TexttoWord(text Text) []string {
@@ -150,7 +120,7 @@ func main() {
    }
    defer file.Close()
    br := bufio.NewReader(file)
- 
+
    for {
      line, _, err := br.ReadLine()
 	 if err == io.EOF {
@@ -158,14 +128,16 @@ func main() {
 	 }
 	 words = append(words,string(line))
    }
-   
+   t1 := time.Now()
    root := CreateTrie(words)
-   fmt.Println("dictionary is ok")
+    t2 := time.Now()
+    log.Println(t2.Sub(t1))
+   log.Println("dictionary is ok")
    
-   flag := root.match(TexttoWord([]byte("2B")),0)
-   if flag==0{
+   flag := root.match(TexttoWord([]byte("中国")),0)
+   if flag==TOTAL_MATCH{
       fmt.Printf("total match\n")
-   } else if flag==2{
+   } else if flag==NOT_MATCH{
       fmt.Printf("not match\n")
    }else{
       fmt.Printf("prefix match\n")
